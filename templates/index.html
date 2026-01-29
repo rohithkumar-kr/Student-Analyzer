@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Student Analyzer | Intelligence Portal</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;600;800&display=swap" rel="stylesheet">
+
+    <style>
+        body { 
+            font-family: 'Plus Jakarta Sans', sans-serif; 
+            background-color: #020617;
+        }
+
+        .glass {
+            background: rgba(15, 23, 42, 0.6);
+            backdrop-filter: blur(24px);
+            -webkit-backdrop-filter: blur(24px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+        }
+
+        .blob {
+            position: absolute;
+            width: 500px;
+            height: 500px;
+            filter: blur(100px);
+            border-radius: 50%;
+            z-index: -1;
+            opacity: 0.4;
+            animation: move 25s infinite alternate;
+        }
+
+        @keyframes move {
+            from { transform: translate(-15%, -15%) rotate(0deg); }
+            to { transform: translate(25%, 25%) rotate(90deg); }
+        }
+
+        .file-selected {
+            border-color: #10b981 !important;
+            background: rgba(16, 185, 129, 0.03) !important;
+        }
+
+        /* Custom Scrollbar (if content ever overflows on tiny screens) */
+        ::-webkit-scrollbar { width: 4px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #334155; border-radius: 10px; }
+    </style>
+</head>
+
+<body class="min-h-screen flex items-center justify-center px-4 overflow-hidden relative selection:bg-indigo-500/30">
+
+<div class="blob top-[-15%] left-[-15%] bg-indigo-600/40"></div>
+<div class="blob bottom-[-15%] right-[-15%] bg-purple-600/40" style="animation-delay:-7s;"></div>
+
+<div class="glass rounded-[2.5rem] max-w-lg w-full p-8 md:p-10 transform transition-all">
+
+    <div class="text-center space-y-3">
+        <div class="inline-flex items-center justify-center w-12 h-12 rounded-2xl bg-indigo-500/10 border border-indigo-500/20 mb-2">
+            <svg class="w-6 h-6 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+            </svg>
+        </div>
+
+        <h1 class="text-4xl font-extrabold tracking-tighter text-white uppercase">
+            Student <span class="text-indigo-400">Analyzer</span>
+        </h1>
+
+        <p class="text-slate-400 text-sm font-medium tracking-wide">
+            Automated performance intelligence engine.
+        </p>
+    </div>
+
+    <div class="mt-6 glass bg-white/5 border border-white/5 rounded-2xl p-4 flex items-start gap-3">
+        <div class="text-indigo-400 mt-1">
+            <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd" /></svg>
+        </div>
+        <div class="text-[11px] text-slate-400 leading-relaxed">
+            <span class="text-slate-200 font-bold block mb-1">Upload Guide</span>
+            Requires a <span class="text-indigo-300">Name</span> column and numeric subject scores. 
+            <details class="mt-1 cursor-pointer">
+                <summary class="text-indigo-400 font-semibold hover:underline">View CSV format</summary>
+                <code class="block mt-2 bg-black/40 p-2 rounded text-indigo-200">Name, Math, Science, English...</code>
+            </details>
+        </div>
+    </div>
+
+    <form id="upload-form" action="/analyze" method="post" enctype="multipart/form-data" class="mt-8 space-y-6">
+
+        <label id="drop-zone"
+               for="file-upload"
+               class="flex flex-col items-center justify-center w-full h-40 border-2 border-dashed border-slate-700 rounded-3xl cursor-pointer bg-slate-900/40 hover:border-indigo-500/50 hover:bg-slate-800/40 transition-all duration-300 group">
+
+            <div id="icon-container" class="text-slate-500 group-hover:text-indigo-400 transition-colors mb-2">
+                <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+                </svg>
+            </div>
+
+            <p id="file-name" class="text-sm text-slate-300 font-medium">
+                <span class="text-indigo-400">Select File</span> or drag here
+            </p>
+
+            <p id="file-meta" class="text-[10px] text-slate-500 font-bold uppercase tracking-[0.2em] mt-2">
+                CSV Records
+            </p>
+
+            <input id="file-upload" name="file" type="file" accept=".csv" required class="hidden">
+        </label>
+
+        <button id="submit-btn"
+                type="submit"
+                class="relative w-full group overflow-hidden bg-indigo-600 px-6 py-4 rounded-2xl text-white font-bold transition-all hover:bg-indigo-500 active:scale-[0.98] shadow-lg shadow-indigo-600/20">
+            <span class="relative z-10 flex items-center justify-center gap-2">
+                Analyze Performance
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
+            </span>
+        </button>
+
+        <p id="warning" class="hidden text-[11px] text-red-400 text-center font-bold uppercase tracking-widest">
+            Invalid Data Structure Detected
+        </p>
+    </form>
+
+    <div class="mt-8 pt-6 border-t border-white/5 text-center">
+        <span class="text-[9px] text-slate-600 font-black uppercase tracking-[0.5em]">
+            Student Analyzer &bull; v2.0
+        </span>
+    </div>
+</div>
+
+<script>
+const fileInput = document.getElementById("file-upload");
+const dropZone = document.getElementById("drop-zone");
+const fileName = document.getElementById("file-name");
+const fileMeta = document.getElementById("file-meta");
+const submitBtn = document.getElementById("submit-btn");
+const warning = document.getElementById("warning");
+
+/* Handle Drag & Drop states */
+["dragover", "dragenter"].forEach(e =>
+    dropZone.addEventListener(e, ev => { 
+        ev.preventDefault(); 
+        dropZone.classList.add("border-indigo-500", "bg-slate-800/60"); 
+    })
+);
+
+["dragleave", "drop"].forEach(e =>
+    dropZone.addEventListener(e, ev => { 
+        ev.preventDefault(); 
+        dropZone.classList.remove("border-indigo-500", "bg-slate-800/60"); 
+    })
+);
+
+dropZone.addEventListener("drop", e => {
+    fileInput.files = e.dataTransfer.files;
+    handleFile();
+});
+
+fileInput.addEventListener("change", handleFile);
+
+function handleFile() {
+    if (!fileInput.files.length) return;
+
+    const file = fileInput.files[0];
+    fileName.innerHTML = `<span class="text-emerald-400 font-bold">Loaded:</span> ${file.name}`;
+    fileMeta.innerText = `${(file.size / 1024).toFixed(1)} KB DATASET`;
+    dropZone.classList.add("file-selected");
+    warning.classList.add("hidden");
+}
+
+/* Form submission UI */
+document.getElementById("upload-form").addEventListener("submit", (e) => {
+    submitBtn.innerHTML = `
+        <span class="flex items-center gap-2">
+            <svg class="animate-spin h-4 w-4 text-white" viewBox="0 0 24 24">
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" fill="none"></circle>
+                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+            </svg>
+            Computing Results...
+        </span>
+    `;
+    submitBtn.style.opacity = "0.7";
+    submitBtn.style.pointerEvents = "none";
+});
+</script>
+
+</body>
+</html>
