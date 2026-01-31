@@ -2,129 +2,114 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Student Analyzer | Intelligence Portal</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student Analyzer</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;600;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/common.css') }}">
 
     <style>
-        body { 
-            font-family: 'Plus Jakarta Sans', sans-serif; 
-            background-color: #020617;
+        /* Shake Animation for the Dropzone */
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            10%, 30%, 50%, 70%, 90% { transform: translateX(-4px); }
+            20%, 40%, 60%, 80% { transform: translateX(4px); }
         }
-
-        .glass {
-            background: rgba(15, 23, 42, 0.6);
-            backdrop-filter: blur(24px);
-            -webkit-backdrop-filter: blur(24px);
-            border: 1px solid rgba(255, 255, 255, 0.08);
-            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+        .animate-shake {
+            animation: shake 0.4s cubic-bezier(.36,.07,.19,.97) both;
+            border-color: #ef4444 !important;
         }
-
-        .blob {
-            position: absolute;
-            width: 500px;
-            height: 500px;
-            filter: blur(100px);
-            border-radius: 50%;
-            z-index: -1;
-            opacity: 0.4;
-            animation: move 25s infinite alternate;
-        }
-
-        @keyframes move {
-            from { transform: translate(-15%, -15%) rotate(0deg); }
-            to { transform: translate(25%, 25%) rotate(90deg); }
-        }
-
-        .file-selected {
-            border-color: #10b981 !important;
-            background: rgba(16, 185, 129, 0.03) !important;
-        }
-
-        /* Custom Scrollbar (if content ever overflows on tiny screens) */
-        ::-webkit-scrollbar { width: 4px; }
-        ::-webkit-scrollbar-track { background: transparent; }
-        ::-webkit-scrollbar-thumb { background: #334155; border-radius: 10px; }
     </style>
 </head>
 
-<body class="min-h-screen flex items-center justify-center px-4 overflow-hidden relative selection:bg-indigo-500/30">
+<body class="h-screen w-full flex items-center justify-center px-4 overflow-hidden relative selection:bg-indigo-500/30">
 
-<div class="blob top-[-15%] left-[-15%] bg-indigo-600/40"></div>
-<div class="blob bottom-[-15%] right-[-15%] bg-purple-600/40" style="animation-delay:-7s;"></div>
+<div id="error-toast" class="fixed top-6 left-1/2 -translate-x-1/2 z-[100] transform -translate-y-[200%] opacity-0 transition-all duration-500 cubic-bezier(0.34, 1.56, 0.64, 1) pointer-events-none">
+    <div class="flex items-center gap-4 bg-[#0f172a]/90 backdrop-blur-xl border border-red-500/50 p-4 pr-6 rounded-2xl shadow-[0_0_40px_-10px_rgba(239,68,68,0.6)] min-w-[320px] max-w-[90vw]">
+        
+        <div class="flex-shrink-0 w-12 h-12 rounded-xl bg-red-500/20 flex items-center justify-center border border-red-500/20">
+            <svg class="w-6 h-6 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+            </svg>
+        </div>
 
-<div class="glass rounded-[2.5rem] max-w-lg w-full p-8 md:p-10 transform transition-all">
+        <div class="flex flex-col">
+            <h3 class="text-white font-bold text-base tracking-tight">Upload Failed</h3>
+            <p class="text-slate-400 text-sm font-medium leading-tight mt-0.5">Please select a CSV file to continue.</p>
+        </div>
+    </div>
+</div>
 
-    <div class="text-center space-y-3">
-        <div class="inline-flex items-center justify-center w-12 h-12 rounded-2xl bg-indigo-500/10 border border-indigo-500/20 mb-2">
-            <svg class="w-6 h-6 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+<div class="blob top-[-10%] left-[-10%] bg-indigo-600/40"></div>
+<div class="blob bottom-[-10%] right-[-10%] bg-purple-600/40" style="animation-delay:-7s;"></div>
+
+<div class="glass rounded-[2rem] md:rounded-[2.5rem] max-w-lg w-full p-6 md:p-10 transform transition-all max-h-[95vh] overflow-y-auto no-scrollbar relative z-10">
+
+    <div class="text-center space-y-2 md:space-y-3">
+        <div class="inline-flex items-center justify-center w-10 h-10 md:w-12 md:h-12 rounded-xl md:rounded-2xl bg-indigo-500/10 border border-indigo-500/20 mb-1">
+            <svg class="w-5 h-5 md:w-6 md:h-6 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
             </svg>
         </div>
 
-        <h1 class="text-4xl font-extrabold tracking-tighter text-white uppercase">
+        <h1 class="text-2xl md:text-4xl font-extrabold tracking-tighter text-white uppercase leading-none">
             Student <span class="text-indigo-400">Analyzer</span>
         </h1>
 
-        <p class="text-slate-400 text-sm font-medium tracking-wide">
+        <p class="text-slate-400 text-[10px] md:text-sm font-medium tracking-wide">
             Automated performance intelligence engine.
         </p>
     </div>
 
-    <div class="mt-6 glass bg-white/5 border border-white/5 rounded-2xl p-4 flex items-start gap-3">
-        <div class="text-indigo-400 mt-1">
+    <div class="mt-4 md:mt-6 glass bg-white/5 border border-white/5 rounded-xl p-3 md:p-4 flex items-start gap-3">
+        <div class="text-indigo-400 mt-0.5">
             <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd" /></svg>
         </div>
-        <div class="text-[11px] text-slate-400 leading-relaxed">
-            <span class="text-slate-200 font-bold block mb-1">Upload Guide</span>
-            Requires a <span class="text-indigo-300">Name</span> column and numeric subject scores. 
+        <div class="text-[10px] md:text-[11px] text-slate-400 leading-relaxed">
+            <span class="text-slate-200 font-bold block">Upload Guide</span>
+            Name column & numeric scores required.
             <details class="mt-1 cursor-pointer">
                 <summary class="text-indigo-400 font-semibold hover:underline">View CSV format</summary>
-                <code class="block mt-2 bg-black/40 p-2 rounded text-indigo-200">Name, Math, Science, English...</code>
+                <code class="block mt-2 bg-black/40 p-2 rounded text-indigo-200">Name, Math, Science...</code>
             </details>
         </div>
     </div>
 
-    <form id="upload-form" action="/analyze" method="post" enctype="multipart/form-data" class="mt-8 space-y-6">
+    <form id="upload-form" action="/analyze" method="post" enctype="multipart/form-data" class="mt-6 md:mt-8 space-y-4 md:space-y-6" novalidate>
 
         <label id="drop-zone"
                for="file-upload"
-               class="flex flex-col items-center justify-center w-full h-40 border-2 border-dashed border-slate-700 rounded-3xl cursor-pointer bg-slate-900/40 hover:border-indigo-500/50 hover:bg-slate-800/40 transition-all duration-300 group">
+               class="flex flex-col items-center justify-center w-full h-32 md:h-40 border-2 border-dashed border-slate-700 rounded-2xl md:rounded-3xl cursor-pointer bg-slate-900/40 hover:border-indigo-500/50 hover:bg-slate-800/40 transition-all duration-300 group relative overflow-hidden">
 
-            <div id="icon-container" class="text-slate-500 group-hover:text-indigo-400 transition-colors mb-2">
-                <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <div id="icon-container" class="text-slate-500 group-hover:text-indigo-400 transition-colors mb-1 md:mb-2">
+                <svg class="w-6 h-6 md:w-8 md:h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
                 </svg>
             </div>
 
-            <p id="file-name" class="text-sm text-slate-300 font-medium">
-                <span class="text-indigo-400">Select File</span> or drag here
+            <p id="file-name" class="text-xs md:text-sm text-slate-300 font-medium z-10">
+                <span class="text-indigo-400">Select File</span> or drag
             </p>
 
-            <p id="file-meta" class="text-[10px] text-slate-500 font-bold uppercase tracking-[0.2em] mt-2">
+            <p id="file-meta" class="text-[9px] text-slate-500 font-bold uppercase tracking-[0.2em] mt-1 z-10">
                 CSV Records
             </p>
 
-            <input id="file-upload" name="file" type="file" accept=".csv" required class="hidden">
+            <input id="file-upload" name="file" type="file" accept=".csv" class="hidden">
         </label>
 
         <button id="submit-btn"
                 type="submit"
-                class="relative w-full group overflow-hidden bg-indigo-600 px-6 py-4 rounded-2xl text-white font-bold transition-all hover:bg-indigo-500 active:scale-[0.98] shadow-lg shadow-indigo-600/20">
-            <span class="relative z-10 flex items-center justify-center gap-2">
+                class="relative w-full group overflow-hidden bg-indigo-600 px-6 py-3.5 md:py-4 rounded-xl md:rounded-2xl text-white font-bold transition-all hover:bg-indigo-500 active:scale-[0.98] shadow-lg shadow-indigo-600/20">
+            <span class="relative z-10 flex items-center justify-center gap-2 text-sm md:text-base">
                 Analyze Performance
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
             </span>
         </button>
-
-        <p id="warning" class="hidden text-[11px] text-red-400 text-center font-bold uppercase tracking-widest">
-            Invalid Data Structure Detected
-        </p>
     </form>
 
-    <div class="mt-8 pt-6 border-t border-white/5 text-center">
-        <span class="text-[9px] text-slate-600 font-black uppercase tracking-[0.5em]">
+    <div class="mt-6 md:mt-8 pt-4 md:pt-6 border-t border-white/5 text-center">
+        <span class="text-[8px] md:text-[9px] text-slate-600 font-black uppercase tracking-[0.5em]">
             Student Analyzer &bull; v2.0
         </span>
     </div>
@@ -136,9 +121,10 @@ const dropZone = document.getElementById("drop-zone");
 const fileName = document.getElementById("file-name");
 const fileMeta = document.getElementById("file-meta");
 const submitBtn = document.getElementById("submit-btn");
-const warning = document.getElementById("warning");
+const uploadForm = document.getElementById("upload-form");
+const errorToast = document.getElementById("error-toast");
 
-/* Handle Drag & Drop states */
+// --- Drag & Drop Visuals ---
 ["dragover", "dragenter"].forEach(e =>
     dropZone.addEventListener(e, ev => { 
         ev.preventDefault(); 
@@ -153,6 +139,7 @@ const warning = document.getElementById("warning");
     })
 );
 
+// --- File Handling ---
 dropZone.addEventListener("drop", e => {
     fileInput.files = e.dataTransfer.files;
     handleFile();
@@ -162,28 +149,62 @@ fileInput.addEventListener("change", handleFile);
 
 function handleFile() {
     if (!fileInput.files.length) return;
+    
+    // Reset Error States
+    dropZone.classList.remove("animate-shake");
+    hideErrorToast();
 
     const file = fileInput.files[0];
     fileName.innerHTML = `<span class="text-emerald-400 font-bold">Loaded:</span> ${file.name}`;
     fileMeta.innerText = `${(file.size / 1024).toFixed(1)} KB DATASET`;
-    dropZone.classList.add("file-selected");
-    warning.classList.add("hidden");
+    dropZone.classList.add("file-selected", "border-indigo-500/50", "bg-indigo-500/5");
 }
 
-/* Form submission UI */
-document.getElementById("upload-form").addEventListener("submit", (e) => {
+// --- Submit Logic with Validation ---
+uploadForm.addEventListener("submit", (e) => {
+    e.preventDefault();
+
+    // Check if empty
+    if (!fileInput.files.length) {
+        triggerError();
+        return;
+    }
+
+    // Valid: Loading state
     submitBtn.innerHTML = `
         <span class="flex items-center gap-2">
             <svg class="animate-spin h-4 w-4 text-white" viewBox="0 0 24 24">
                 <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" fill="none"></circle>
                 <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
             </svg>
-            Computing Results...
+            Computing...
         </span>
     `;
     submitBtn.style.opacity = "0.7";
     submitBtn.style.pointerEvents = "none";
+    
+    uploadForm.submit();
 });
+
+// --- Error Animation Functions ---
+function triggerError() {
+    // 1. Shake Dropzone
+    dropZone.classList.remove("animate-shake");
+    void dropZone.offsetWidth; // Force Reflow
+    dropZone.classList.add("animate-shake");
+
+    // 2. Show Alert
+    errorToast.classList.remove("-translate-y-[200%]", "opacity-0");
+    errorToast.classList.add("translate-y-0", "opacity-100");
+
+    // 3. Auto hide after 3.5 seconds
+    setTimeout(hideErrorToast, 3500);
+}
+
+function hideErrorToast() {
+    errorToast.classList.add("-translate-y-[200%]", "opacity-0");
+    errorToast.classList.remove("translate-y-0", "opacity-100");
+}
 </script>
 
 </body>

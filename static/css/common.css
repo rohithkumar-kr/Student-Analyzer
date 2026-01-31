@@ -1,0 +1,97 @@
+/* 1. Prevent all scrolling and lock viewport */
+body {
+    margin: 0;
+    padding: 0;
+    height: 100vh;
+    height: 100dvh; /* Better support for mobile browsers */
+    overflow: hidden !important;
+    position: fixed; /* Prevents "bounce" effects on iOS */
+    width: 100%;
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    background-color: #020617;
+}
+
+/* 2. Fix Horizontal Scroll (Blobs) */
+.blob {
+    position: absolute;
+    width: 300px; /* Smaller blobs for mobile */
+    height: 300px;
+    filter: blur(60px);
+    border-radius: 50%;
+    z-index: -1;
+    opacity: 0.3;
+    animation: move 25s infinite alternate;
+    pointer-events: none;
+}
+
+/* 3. Responsive Card Adjustments (Single Page Feel) */
+@media (max-width: 768px) {
+    /* Override Tailwind's p-8 to fit screen */
+    .glass {
+        padding: 1.5rem !important; 
+        max-height: 92vh;
+        width: 90% !important;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+    }
+
+    /* Scale down Title */
+    h1 {
+        font-size: 1.8rem !important;
+        margin-bottom: 0.5rem;
+    }
+
+    /* Shrink the Drop Zone height to save vertical space */
+    #drop-zone {
+        height: 120px !important;
+        margin-top: 1rem !important;
+    }
+
+    /* Shrink the icon container */
+    #icon-container svg {
+        width: 2rem !important;
+        height: 2rem !important;
+    }
+
+    /* Make margins tighter */
+    form {
+        margin-top: 1rem !important;
+        gap: 1rem !important;
+    }
+    
+    .mt-8 { margin-top: 1rem !important; }
+    .mt-6 { margin-top: 0.75rem !important; }
+}
+
+/* 4. Desktop Scaling (Original Foundation) */
+@media (min-width: 769px) {
+    .blob {
+        width: 500px;
+        height: 500px;
+        filter: blur(100px);
+    }
+}
+
+/* 5. Animation logic */
+@keyframes move {
+    from { transform: translate(-10%, -10%) rotate(0deg); }
+    to { transform: translate(15%, 15%) rotate(90deg); }
+}
+
+/* 6. Functional UI Classes */
+.glass {
+    background: rgba(15, 23, 42, 0.6);
+    backdrop-filter: blur(24px);
+    -webkit-backdrop-filter: blur(24px);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+}
+
+.file-selected {
+    border-color: #10b981 !important;
+    background: rgba(16, 185, 129, 0.03) !important;
+}
+
+/* Custom Scrollbar for hidden overflows */
+::-webkit-scrollbar { width: 0px; background: transparent; }

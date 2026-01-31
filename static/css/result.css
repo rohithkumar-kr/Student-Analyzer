@@ -1,0 +1,78 @@
+/* ======================================
+   RESULT PAGE – SAFE RESPONSIVE FIX
+   ====================================== */
+
+/* DO NOT lock body or html scrolling */
+html {
+  overflow-x: hidden;
+}
+
+body {
+  overflow-x: hidden;
+}
+
+/* Background blobs must not block scrolling */
+.blob {
+  pointer-events: none;
+}
+
+/* ======================================
+   PODIUM – KEEP LAYOUT ON MOBILE
+   ====================================== */
+@media (max-width: 768px) {
+  .podium-1,
+  .podium-2,
+  .podium-3 {
+    transform: none !important;
+    order: unset !important;
+  }
+}
+
+/* ======================================
+   CHARTS – MOBILE FRIENDLY
+   ====================================== */
+@media (max-width: 768px) {
+  #chartsPanel {
+    padding: 1.25rem !important;
+  }
+
+  #chartsPanel canvas {
+    max-height: 260px !important;
+  }
+}
+
+/* ================================
+   MOBILE TABLE – KEEP TABLE LAYOUT
+   ================================ */
+@media (max-width: 768px) {
+
+  /* Allow horizontal scroll ONLY for table */
+  .overflow-x-auto {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  table {
+    min-width: 600px; /* ensures table doesn't collapse */
+  }
+
+  th, td {
+    white-space: nowrap;
+    font-size: 0.75rem;
+  }
+}
+/* ================================
+   MOBILE: HIDE GRADE COLUMN
+   ================================ */
+@media (max-width: 768px) {
+
+  /* Hide Grade header */
+  th:last-child {
+    display: none;
+  }
+
+  /* Hide Grade cells */
+  td:last-child {
+    display: none;
+  }
+}
